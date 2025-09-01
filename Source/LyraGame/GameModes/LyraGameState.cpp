@@ -97,6 +97,27 @@ void ALyraGameState::Tick(float DeltaSeconds)
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		ServerFPS = GAverageFPS;
+
+        static float TimeAccumulator = 0.0f;
+		static int32 FrameCounter = 0;
+
+        TimeAccumulator += DeltaSeconds;
+		FrameCounter++;
+
+        if (TimeAccumulator >= 1.0f)
+        {
+			int32 NumPlayers = 0;
+            if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+            {
+                NumPlayers = GameMode->GetNumPlayers();
+            }
+			const float InstantFPS = FrameCounter / TimeAccumulator;
+			const float InstantFrameTimeMs = 1000.0f / InstantFPS;
+
+            UE_LOG(LogTemp, Log, TEXT("[WWQ TickRate] Server Tick Rate: %.2f FPS (%.2f ms/frame), InstantFPS: %.2f FPS, Player Number: %d "), GAverageFPS, 1000.0f / GAverageFPS, InstantFPS, NumPlayers);
+            TimeAccumulator = 0.0f;
+			FrameCounter = 0;
+        }
 	}
 }
 

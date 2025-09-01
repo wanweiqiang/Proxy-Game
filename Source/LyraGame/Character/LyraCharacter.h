@@ -101,6 +101,8 @@ public:
 
 	ALyraCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION(BlueprintCallable, Category = "Lyra|Character")
 	ALyraPlayerController* GetLyraPlayerController() const;
 
@@ -206,6 +208,10 @@ private:
 
 	UPROPERTY()
 	FOnLyraTeamIndexChangedDelegate OnTeamChangedDelegate;
+	
+	bool bIsBot = false;
+	float BotDirection = 1.0f;
+	float ElapsedTime = 0.0f;
 
 protected:
 	// Called to determine what happens to the team ID when possession ends

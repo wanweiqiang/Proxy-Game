@@ -16,6 +16,7 @@
 #include "Player/LyraPlayerState.h"
 #include "System/LyraSignificanceManager.h"
 #include "TimerManager.h"
+#include "AIController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(LyraCharacter)
 
@@ -31,8 +32,12 @@ ALyraCharacter::ALyraCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<ULyraCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	// Avoid ticking characters if possible.
-	PrimaryActorTick.bCanEverTick = false;
-	PrimaryActorTick.bStartWithTickEnabled = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+	if (FParse::Param(FCommandLine::Get(), TEXT("botclient")))
+	{
+		bIsBot = true;
+	}
 
 	SetNetCullDistanceSquared(900000000.0f);
 
@@ -79,6 +84,27 @@ ALyraCharacter::ALyraCharacter(const FObjectInitializer& ObjectInitializer)
 	BaseEyeHeight = 80.0f;
 	CrouchedEyeHeight = 50.0f;
 }
+
+void ALyraCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	// 客户端本地控制角色（和有图形无关）
+	if (IsLocallyControlled() && IsValid(GetController()) && !GetController()->IsA(AAIController::StaticClass()))
+	{
+		static float AccumTime = 0.f;
+		static float Direction = 1.f;
+
+		AccumTime += DeltaTime;
+		if (AccumTime > 2.0f)
+		{
+			Direction *= -1.f;  // 来回走
+			if(Direction > 0.0f) AccumTime = 1.f;
+			else AccumTime = 2.f;
+		}
+		AddMovementInput(GetActorForwardVector(), Direction);
+	}
+}
+
 
 void ALyraCharacter::PreInitializeComponents()
 {
